@@ -64,14 +64,14 @@
   });
 
   inputOtpCode.addEventListener('input', () => {
-    inputOtpCode.value = inputOtpCode.value.replace(/\D/g, '').slice(0, 6);
+    inputOtpCode.value = inputOtpCode.value.replace(/\D/g, '').slice(0, 8);
   });
 
   document.getElementById('btn-confirm-otp').addEventListener('click', async () => {
     const token = inputOtpCode.value.trim();
     hideError('otp-error');
-    if (token.length !== 6) {
-      showError('otp-error', 'O código tem 6 números.');
+    if (token.length < 6) {
+      showError('otp-error', 'Escreve o código completo do email.');
       return;
     }
     const btn = document.getElementById('btn-confirm-otp');
