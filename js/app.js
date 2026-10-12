@@ -1003,6 +1003,12 @@
     await loadFavorites();
     subscribeRealtime();
     showScreen('home');
+
+    // "standalone" é true quando a app foi aberta pelo ícone no ecrã
+    // principal; false quando é o Safari normal (ex: depois de clicar no
+    // link do email, que o iOS abre sempre no browser).
+    const isStandalone = window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
+    document.getElementById('browser-banner').classList.toggle('hidden', isStandalone);
   }
 
   window.NDApp = { boot };
