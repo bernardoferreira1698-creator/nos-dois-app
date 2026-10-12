@@ -1,7 +1,16 @@
 (function () {
   'use strict';
 
-  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  // Explícito (em vez de confiar nos valores por omissão) para a sessão
+  // ficar guardada no telemóvel e sobreviver a fechar a app por completo.
+  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true,
+      storage: window.localStorage,
+    },
+  });
 
   function showOnly(name) {
     document.querySelectorAll('.screen').forEach((s) => s.classList.toggle('active', s.dataset.screen === name));

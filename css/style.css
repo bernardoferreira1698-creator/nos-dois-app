@@ -20,6 +20,9 @@
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --safe-left: env(safe-area-inset-left, 0px);
   --safe-right: env(safe-area-inset-right, 0px);
+  /* espaço extra para nenhum botão ficar tapado por selos/barras que o
+     browser ou o alojamento possam sobrepor no fundo do ecrã */
+  --bottom-clearance: 34px;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -69,11 +72,16 @@ input, select, textarea {
   font-family: inherit;
 }
 
-#app { position: relative; min-height: 100vh; }
+#app {
+  position: relative;
+  min-height: 100vh;
+  min-height: 100dvh; /* altura real visível no Safari do iPhone, sem precisar de scroll */
+}
 
 .screen {
   display: none;
   min-height: 100vh;
+  min-height: 100dvh;
   flex-direction: column;
   animation: fade-in 0.2s ease;
 }
@@ -154,7 +162,7 @@ input, select, textarea {
 .bottom-nav {
   display: flex;
   justify-content: space-around;
-  padding: 10px 10px calc(10px + var(--safe-bottom));
+  padding: 10px 10px calc(10px + var(--safe-bottom) + var(--bottom-clearance));
   background: var(--bg-elevated);
   border-top: 1px solid var(--border);
 }
@@ -277,7 +285,7 @@ input, select, textarea {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  padding: 10px 24px calc(24px + var(--safe-bottom));
+  padding: 10px 24px calc(24px + var(--safe-bottom) + var(--bottom-clearance));
 }
 
 .btn-primary, .btn-secondary, .btn-choose {
@@ -344,7 +352,7 @@ input, select, textarea {
 /* ===== Listas (histórico, vales, favoritos) ===== */
 .list-area {
   flex: 1;
-  padding: 4px 16px calc(24px + var(--safe-bottom));
+  padding: 4px 16px calc(24px + var(--safe-bottom) + var(--bottom-clearance));
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -413,7 +421,7 @@ input, select, textarea {
 /* ===== Definições ===== */
 .settings-list {
   flex: 1;
-  padding: 10px 20px calc(24px + var(--safe-bottom));
+  padding: 10px 20px calc(24px + var(--safe-bottom) + var(--bottom-clearance));
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -486,7 +494,7 @@ select.text-input {
   background: var(--bg-elevated);
   border-top: 1px solid var(--border);
   border-radius: 24px 24px 0 0;
-  padding: 26px 24px calc(26px + var(--safe-bottom));
+  padding: 26px 24px calc(26px + var(--safe-bottom) + var(--bottom-clearance));
   box-shadow: 0 -10px 30px var(--shadow);
   transform: translateY(100%);
   transition: transform 0.25s cubic-bezier(.2,.8,.2,1);
@@ -519,7 +527,7 @@ select.text-input {
 /* ===== Toast ===== */
 .toast {
   position: fixed;
-  bottom: calc(30px + var(--safe-bottom));
+  bottom: calc(30px + var(--safe-bottom) + var(--bottom-clearance));
   left: 50%;
   transform: translateX(-50%) translateY(10px);
   background: var(--text);
@@ -543,7 +551,7 @@ select.text-input {
   flex-direction: column;
   justify-content: center;
   gap: 14px;
-  padding: 24px 28px calc(24px + var(--safe-bottom));
+  padding: 24px 28px calc(24px + var(--safe-bottom) + var(--bottom-clearance));
   max-width: 420px;
   margin: 0 auto;
   width: 100%;
