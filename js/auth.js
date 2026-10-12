@@ -51,7 +51,12 @@
     });
     btn.disabled = false;
     if (error) {
-      showError('login-error', 'Não foi possível enviar o código. Tenta outra vez.');
+      showError(
+        'login-error',
+        error.status === 429
+          ? 'Pediste um código há pouco — espera cerca de 1 minuto e tenta outra vez.'
+          : 'Não foi possível enviar o código. Tenta outra vez.'
+      );
       return;
     }
     pendingLoginEmail = email;
