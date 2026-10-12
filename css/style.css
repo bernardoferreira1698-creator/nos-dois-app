@@ -22,7 +22,7 @@
   --safe-right: env(safe-area-inset-right, 0px);
   /* espaço extra para nenhum botão ficar tapado por selos/barras que o
      browser ou o alojamento possam sobrepor no fundo do ecrã */
-  --bottom-clearance: 34px;
+  --bottom-clearance: 64px;
 }
 
 @media (prefers-color-scheme: dark) {
