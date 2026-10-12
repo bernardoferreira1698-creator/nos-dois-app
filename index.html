@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<title>Nós Dois</title>
+
+<!-- PWA / iOS -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Nós Dois">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<meta name="description" content="Jogo para o casal: dates, perguntas, desafios e spicy — com vales-surpresa e histórico partilhado.">
+
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/icon-32.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ===== LOGIN (link mágico por email) ===== -->
+  <section id="screen-login" class="screen" data-screen="login">
+    <div class="auth-box">
+      <h1 class="logo">Nós&nbsp;Dois</h1>
+      <div id="login-form">
+        <p class="auth-text">Entra com o teu email. Enviamos-te um link — sem palavras-passe.</p>
+        <input type="email" id="input-login-email" class="text-input" placeholder="o-teu-email@exemplo.com" autocomplete="email" inputmode="email">
+        <button class="btn-primary full" id="btn-send-magic-link">Enviar link mágico</button>
+        <p class="gate-error hidden" id="login-error"></p>
+      </div>
+      <div id="login-sent" class="hidden">
+        <p class="auth-text">Enviámos um link para <strong id="login-sent-email"></strong>. Abre o teu email neste telemóvel e toca no link para entrares.</p>
+        <button class="btn-secondary full" id="btn-login-try-again">Usar outro email</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== PRIMEIRO NOME (depois do primeiro login) ===== -->
+  <section id="screen-name" class="screen" data-screen="name">
+    <div class="auth-box">
+      <h1 class="logo">Olá! 👋</h1>
+      <p class="auth-text">Como queres que o teu nome apareça para o/a teu/tua par?</p>
+      <input type="text" id="input-first-name" class="text-input" placeholder="O teu nome" autocomplete="given-name">
+      <button class="btn-primary full" id="btn-save-first-name">Continuar</button>
+    </div>
+  </section>
+
+  <!-- ===== GRUPO: criar ou entrar ===== -->
+  <section id="screen-group" class="screen" data-screen="group">
+    <div class="auth-box">
+      <h1 class="logo">O vosso grupo</h1>
+      <p class="auth-text">Um de vocês cria o grupo e recebe um código; o outro usa esse código para entrar.</p>
+
+      <div id="group-choice">
+        <button class="btn-primary full" id="btn-create-group">Criar um grupo novo</button>
+        <p class="auth-divider">ou</p>
+        <input type="text" id="input-join-code" class="text-input code-input" placeholder="CÓDIGO" maxlength="6" autocapitalize="characters">
+        <button class="btn-secondary full" id="btn-join-group">Entrar com código</button>
+        <p class="gate-error hidden" id="group-error"></p>
+      </div>
+
+      <div id="group-created" class="hidden">
+        <p class="auth-text">Grupo criado! Partilha este código com o/a teu/tua par:</p>
+        <p class="group-code" id="created-group-code">······</p>
+        <button class="btn-primary full" id="btn-group-continue">Continuar</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== ECRÃ PRINCIPAL ===== -->
+  <section id="screen-home" class="screen" data-screen="home">
+    <header class="home-header">
+      <h1 class="logo" id="couple-logo">Nós&nbsp;Dois</h1>
+      <button class="icon-btn" id="btn-settings" aria-label="Definições">⚙️</button>
+    </header>
+
+    <div class="cards-grid" id="category-grid"><!-- gerado via JS --></div>
+
+    <nav class="bottom-nav">
+      <button class="nav-btn" id="nav-historico">
+        <span class="nav-icon">📜</span><span>Histórico</span>
+      </button>
+      <button class="nav-btn" id="nav-vales">
+        <span class="nav-icon">🎟️</span><span>Vales</span>
+      </button>
+      <button class="nav-btn" id="nav-favoritos">
+        <span class="nav-icon">⭐</span><span>Favoritos</span>
+      </button>
+    </nav>
+  </section>
+
+  <!-- ===== ECRÃ DE CATEGORIA / SORTEIO ===== -->
+  <section id="screen-category" class="screen" data-screen="category">
+    <header class="category-header">
+      <button class="icon-btn btn-back" aria-label="Voltar">←</button>
+      <h2 id="category-title">Categoria</h2>
+      <button class="icon-btn btn-fav" id="btn-fav" aria-label="Favorito">☆</button>
+    </header>
+
+    <div class="draw-area">
+      <div class="draw-card" id="draw-card">
+        <p class="draw-card-text" id="draw-card-text">Toca para sortear</p>
+        <p class="draw-card-added-by hidden" id="draw-card-added-by"></p>
+      </div>
+    </div>
+
+    <div class="draw-actions">
+      <button class="btn-primary" id="btn-draw">Sortear</button>
+      <button class="btn-secondary hidden" id="btn-again">Dá-me outra</button>
+      <button class="btn-choose hidden" id="btn-choose">Escolher esta</button>
+    </div>
+  </section>
+
+  <!-- ===== CONFIRMAÇÃO SPICY ===== -->
+  <section id="screen-spicy-gate" class="screen" data-screen="spicy-gate">
+    <div class="gate-box">
+      <p class="gate-emoji">🔒</p>
+      <h2>Conteúdo +18</h2>
+      <p class="gate-text">Esta categoria tem conteúdo só para adultos. Continuar?</p>
+      <div id="spicy-pin-area" class="hidden">
+        <input type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" id="spicy-pin-input" class="pin-input" placeholder="····">
+        <p class="gate-error hidden" id="spicy-pin-error">PIN incorreto.</p>
+      </div>
+      <div class="gate-actions">
+        <button class="btn-secondary" id="btn-spicy-cancel">Cancelar</button>
+        <button class="btn-primary" id="btn-spicy-confirm">Continuar</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== HISTÓRICO ===== -->
+  <section id="screen-historico" class="screen" data-screen="historico">
+    <header class="category-header">
+      <button class="icon-btn btn-back" aria-label="Voltar">←</button>
+      <h2>Histórico</h2>
+      <span class="icon-btn" style="visibility:hidden">·</span>
+    </header>
+    <div class="tabs">
+      <button class="tab-btn" id="btn-historico-archive-toggle">Ver cards anteriores</button>
+    </div>
+    <div class="list-area" id="historico-list"></div>
+  </section>
+
+  <!-- ===== VALES ===== -->
+  <section id="screen-vales" class="screen" data-screen="vales">
+    <header class="category-header">
+      <button class="icon-btn btn-back" aria-label="Voltar">←</button>
+      <h2>Vales</h2>
+      <span class="icon-btn" style="visibility:hidden">·</span>
+    </header>
+    <div class="tabs" id="vales-member-tabs"></div>
+    <div class="tabs">
+      <button class="tab-btn" id="btn-vales-archive-toggle">Ver vales antigos</button>
+    </div>
+    <div class="list-area" id="vales-list"></div>
+  </section>
+
+  <!-- ===== FAVORITOS ===== -->
+  <section id="screen-favoritos" class="screen" data-screen="favoritos">
+    <header class="category-header">
+      <button class="icon-btn btn-back" aria-label="Voltar">←</button>
+      <h2>Favoritos</h2>
+      <span class="icon-btn" style="visibility:hidden">·</span>
+    </header>
+    <div class="list-area" id="favoritos-list"></div>
+  </section>
+
+  <!-- ===== DEFINIÇÕES ===== -->
+  <section id="screen-settings" class="screen" data-screen="settings">
+    <header class="category-header">
+      <button class="icon-btn btn-back" aria-label="Voltar">←</button>
+      <h2>Definições</h2>
+      <span class="icon-btn" style="visibility:hidden">·</span>
+    </header>
+
+    <div class="settings-list">
+      <div class="settings-group">
+        <label class="settings-label" for="input-name">O teu nome</label>
+        <input type="text" id="input-name" class="text-input" placeholder="Como queres aparecer">
+      </div>
+
+      <div class="settings-group">
+        <span class="settings-label">Grupo</span>
+        <p class="settings-hint" id="group-status">A carregar...</p>
+      </div>
+
+      <div class="settings-group">
+        <span class="settings-label">PIN do Spicy</span>
+        <p class="settings-hint">Define um PIN de 4 dígitos para proteger a categoria Spicy neste telemóvel. Deixa em branco para não usar PIN.</p>
+        <input type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" id="input-pin" class="text-input" placeholder="····">
+      </div>
+
+      <div class="settings-group settings-row">
+        <div>
+          <span class="settings-label">Notificações</span>
+          <p class="settings-hint">Disponível depois de ligarmos o backend.</p>
+        </div>
+        <button class="btn-secondary" id="btn-enable-notifications" disabled>Ativar notificações</button>
+      </div>
+
+      <div class="settings-group settings-row">
+        <div>
+          <span class="settings-label">Spicy nas notificações da app</span>
+          <p class="settings-hint">A app só pode escolher Spicy por vocês se ambos ativarem isto.</p>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="toggle-spicy-auto">
+          <span class="switch-slider"></span>
+        </label>
+      </div>
+
+      <div class="settings-group">
+        <span class="settings-label">Acrescentar uma ideia</span>
+        <p class="settings-hint">Entra no sorteio da categoria escolhida, partilhada com o grupo — mas não fica listada em lado nenhum, para manter a surpresa de quando calhar.</p>
+        <select id="select-add-category" class="text-input"></select>
+        <textarea id="input-add-text" class="text-input textarea-input" rows="2" placeholder="Escreve a ideia..."></textarea>
+        <button class="btn-secondary full" id="btn-add-idea">Adicionar</button>
+      </div>
+
+      <div class="settings-group">
+        <button class="btn-secondary full" id="btn-reset-progress">Repor progresso dos sorteios</button>
+      </div>
+
+      <div class="settings-group">
+        <button class="btn-secondary full danger" id="btn-leave-group">Sair do grupo</button>
+      </div>
+
+      <div class="settings-group">
+        <button class="btn-secondary full danger" id="btn-logout">Terminar sessão</button>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<!-- ===== Folhas de confirmação (overlay) ===== -->
+<div id="sheet-backdrop" class="sheet-backdrop"></div>
+
+<div id="sheet-confirm-again" class="sheet">
+  <p class="sheet-text">Tens a certeza? Esta opção parece muito interessante.</p>
+  <div class="sheet-actions">
+    <button class="btn-secondary full" id="btn-sheet-add-history">Adicionar ao Histórico</button>
+    <button class="btn-primary full" id="btn-sheet-draw-again">Dá-me outra, sim</button>
+  </div>
+</div>
+
+<div id="sheet-added-history" class="sheet">
+  <p class="sheet-text">Esta ideia foi adicionada ao Histórico ✓</p>
+  <div class="sheet-actions">
+    <button class="btn-secondary full" id="btn-sheet-visit-history">Visitar o Histórico</button>
+    <button class="btn-primary full" id="btn-sheet-share-partner">Partilhar com <span id="sheet-partner-name">o/a teu/tua par</span></button>
+  </div>
+</div>
+
+<div id="sheet-rating" class="sheet">
+  <p class="sheet-text">Como foi? Dá uma nota de 1 a 5.</p>
+  <div class="stars" id="rating-stars">
+    <button class="star-btn" data-value="1" aria-label="1 estrela">★</button>
+    <button class="star-btn" data-value="2" aria-label="2 estrelas">★</button>
+    <button class="star-btn" data-value="3" aria-label="3 estrelas">★</button>
+    <button class="star-btn" data-value="4" aria-label="4 estrelas">★</button>
+    <button class="star-btn" data-value="5" aria-label="5 estrelas">★</button>
+  </div>
+  <div class="sheet-actions">
+    <button class="btn-secondary full" id="btn-rating-cancel">Cancelar</button>
+    <button class="btn-primary full" id="btn-rating-save">Guardar nota</button>
+  </div>
+</div>
+
+<div id="sheet-voucher-unlocked" class="sheet">
+  <p class="sheet-text">🎁 Vale desbloqueado! Avaliaram da mesma forma — já têm um vale novo cada um.</p>
+  <div class="sheet-actions">
+    <button class="btn-primary full" id="btn-voucher-view-all">Ver todos os vales</button>
+  </div>
+</div>
+
+<!-- Toast simples para feedback -->
+<div id="toast" class="toast hidden"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="js/config.js"></script>
+<script src="js/data.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
