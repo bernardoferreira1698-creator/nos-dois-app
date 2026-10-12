@@ -907,6 +907,28 @@
     toast('Progresso dos sorteios reposto');
   });
 
+  // ---- Zona perigosa: apagar todo o histórico do grupo (dupla confirmação) ----
+  document.getElementById('btn-wipe-group-data').addEventListener('click', async () => {
+    const step1 = confirm(
+      'Isto apaga definitivamente o Histórico, os Vales e os Favoritos de todo o grupo — de ambos. Não pode ser desfeito. Continuar?'
+    );
+    if (!step1) return;
+
+    const step2 = confirm('Tens mesmo a certeza? Esta é a última confirmação — depois disto não há volta atrás.');
+    if (!step2) return;
+
+    const gid = authCtx.group.id;
+    await authCtx.sb.from('history').delete().eq('group_id', gid); // apaga também as avaliações, em cascata
+    await authCtx.sb.from('favorites').delete().eq('group_id', gid);
+    await authCtx.sb.from('vouchers').delete().eq('group_id', gid);
+    await authCtx.sb.from('custom_items').delete().eq('group_id', gid);
+    await authCtx.sb.from('draw_progress').delete().eq('group_id', gid);
+    customItemsCache = {};
+    Object.keys(drawProgressCache).forEach((k) => delete drawProgressCache[k]);
+
+    toast('Histórico do grupo apagado');
+  });
+
   // ---- Acrescentar ideias às categorias (partilhado pelo grupo) ----
   function populateCategorySelect() {
     selectAddCategory.innerHTML = ADDABLE_CATEGORIES.map(
