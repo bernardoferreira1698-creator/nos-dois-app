@@ -25,10 +25,16 @@
     document.getElementById(elId).classList.add('hidden');
   }
 
-  // ================== Login por link mágico ==================
+  // ================== Login por link mágico OU código de 6 dígitos ==================
+  // No iPhone, o link do email abre sempre no Safari (nunca diretamente na
+  // app guardada no ecrã principal), e o Safari não partilha sempre a
+  // sessão com essa app instalada. O código resolve isto: é confirmado sem
+  // nunca sair da app.
   const loginForm = document.getElementById('login-form');
   const loginSent = document.getElementById('login-sent');
   const inputLoginEmail = document.getElementById('input-login-email');
+  const inputOtpCode = document.getElementById('input-otp-code');
+  let pendingLoginEmail = '';
 
   document.getElementById('btn-send-magic-link').addEventListener('click', async () => {
     const email = inputLoginEmail.value.trim();
@@ -45,12 +51,38 @@
     });
     btn.disabled = false;
     if (error) {
-      showError('login-error', 'Não foi possível enviar o link. Tenta outra vez.');
+      showError('login-error', 'Não foi possível enviar o código. Tenta outra vez.');
       return;
     }
+    pendingLoginEmail = email;
     document.getElementById('login-sent-email').textContent = email;
+    inputOtpCode.value = '';
+    hideError('otp-error');
     loginForm.classList.add('hidden');
     loginSent.classList.remove('hidden');
+    inputOtpCode.focus();
+  });
+
+  inputOtpCode.addEventListener('input', () => {
+    inputOtpCode.value = inputOtpCode.value.replace(/\D/g, '').slice(0, 6);
+  });
+
+  document.getElementById('btn-confirm-otp').addEventListener('click', async () => {
+    const token = inputOtpCode.value.trim();
+    hideError('otp-error');
+    if (token.length !== 6) {
+      showError('otp-error', 'O código tem 6 números.');
+      return;
+    }
+    const btn = document.getElementById('btn-confirm-otp');
+    btn.disabled = true;
+    const { error } = await sb.auth.verifyOtp({ email: pendingLoginEmail, token, type: 'email' });
+    btn.disabled = false;
+    if (error) {
+      showError('otp-error', 'Código inválido ou expirado. Pede um novo.');
+      return;
+    }
+    // Sucesso: o onAuthStateChange abaixo trata do resto sozinho.
   });
 
   document.getElementById('btn-login-try-again').addEventListener('click', () => {
