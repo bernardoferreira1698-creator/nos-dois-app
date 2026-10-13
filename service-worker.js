@@ -2,7 +2,7 @@
 // Parte 1: cache do "app shell" para funcionar offline.
 // Parte 2: vai também receber notificações push (Web Push + VAPID).
 
-const CACHE_NAME = 'nos-dois-v15';
+const CACHE_NAME = 'nos-dois-v16';
 const APP_SHELL = [
   './',
   './index.html',
