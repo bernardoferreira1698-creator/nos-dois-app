@@ -41,17 +41,11 @@
 html, body {
   margin: 0;
   height: 100%;
+  overflow: hidden; /* só as listas (dentro da app) deslizam, nunca a página toda */
   background: var(--bg);
   color: var(--text);
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   overscroll-behavior-y: none;
-}
-
-body {
-  padding-top: var(--safe-top);
-  padding-bottom: var(--safe-bottom);
-  padding-left: var(--safe-left);
-  padding-right: var(--safe-right);
 }
 
 h1, h2, h3 {
@@ -74,15 +68,20 @@ input, select, textarea {
 
 #app {
   position: relative;
-  min-height: 100vh;
-  min-height: 100dvh; /* altura real visível no Safari do iPhone, sem precisar de scroll */
+  height: 100vh;
+  height: 100dvh; /* altura real visível no Safari do iPhone — exata, não mínima */
+  padding-top: var(--safe-top);
+  padding-bottom: var(--safe-bottom);
+  padding-left: var(--safe-left);
+  padding-right: var(--safe-right);
+  overflow: hidden;
 }
 
 .screen {
   display: none;
-  min-height: 100vh;
-  min-height: 100dvh;
+  height: 100%;
   flex-direction: column;
+  overflow: hidden;
   animation: fade-in 0.2s ease;
 }
 .screen.active { display: flex; }
@@ -132,6 +131,8 @@ input, select, textarea {
   flex-direction: column;
   gap: 14px;
   padding: 10px 20px 20px;
+  overflow-y: auto;
+  min-height: 0; /* permite ao flex item encolher e deslizar em vez de empurrar o ecrã */
 }
 
 .category-card {
@@ -162,7 +163,7 @@ input, select, textarea {
 .bottom-nav {
   display: flex;
   justify-content: space-around;
-  padding: 10px 10px calc(10px + var(--safe-bottom) + var(--bottom-clearance));
+  padding: 10px 10px calc(10px + var(--bottom-clearance));
   background: var(--bg-elevated);
   border-top: 1px solid var(--border);
 }
@@ -233,10 +234,12 @@ input, select, textarea {
 /* ===== Ecrã de sorteio ===== */
 .draw-area {
   flex: 1;
+  min-height: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 10px 24px;
+  overflow-y: auto;
   perspective: 1200px;
 }
 
@@ -296,7 +299,7 @@ input, select, textarea {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  padding: 10px 24px calc(24px + var(--safe-bottom) + var(--bottom-clearance));
+  padding: 10px 24px calc(24px + var(--bottom-clearance));
 }
 
 .btn-primary, .btn-secondary, .btn-choose {
@@ -363,7 +366,8 @@ input, select, textarea {
 /* ===== Listas (histórico, vales, favoritos) ===== */
 .list-area {
   flex: 1;
-  padding: 4px 16px calc(24px + var(--safe-bottom) + var(--bottom-clearance));
+  min-height: 0;
+  padding: 4px 16px calc(24px + var(--bottom-clearance));
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -432,7 +436,8 @@ input, select, textarea {
 /* ===== Definições ===== */
 .settings-list {
   flex: 1;
-  padding: 10px 20px calc(24px + var(--safe-bottom) + var(--bottom-clearance));
+  min-height: 0;
+  padding: 10px 20px calc(24px + var(--bottom-clearance));
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -562,7 +567,7 @@ select.text-input {
   flex-direction: column;
   justify-content: center;
   gap: 14px;
-  padding: 24px 28px calc(24px + var(--safe-bottom) + var(--bottom-clearance));
+  padding: 24px 28px calc(24px + var(--bottom-clearance));
   max-width: 420px;
   margin: 0 auto;
   width: 100%;
