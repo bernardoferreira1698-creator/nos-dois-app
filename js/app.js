@@ -1139,11 +1139,26 @@
   window.NDApp = { boot };
 
   // ================== Service worker (PWA) ==================
+  // Sem isto, uma atualização só aparece na abertura A SEGUIR à abertura em
+  // que o telemóvel a detetou (o novo service worker instala-se em segundo
+  // plano, mas só passa a controlar a página numa próxima navegação). Para
+  // a pessoa não ter de fechar e abrir a app duas vezes, forçamos a
+  // verificação assim que abre, e recarregamos sozinhos mal a nova versão
+  // assuma o controlo.
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('service-worker.js').catch(() => {
+      navigator.serviceWorker.register('service-worker.js').then((reg) => {
+        reg.update();
+      }).catch(() => {
         // falha silenciosa: a app continua a funcionar sem cache offline
       });
+    });
+
+    let reloadedForNewVersion = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (reloadedForNewVersion) return;
+      reloadedForNewVersion = true;
+      window.location.reload();
     });
   }
 })();
