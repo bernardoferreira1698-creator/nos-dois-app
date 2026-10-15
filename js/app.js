@@ -33,18 +33,28 @@
   // (fora de qualquer .screen) — só assim o indicador consegue deslizar de
   // um separador para o outro em vez de simplesmente "saltar" para a
   // posição nova a cada troca de ecrã.
-  const NAV_INDICATOR_LEFT = { home: 26.25, vales: 108.75, historico: 191.25, definicoes: 273.75 };
   const NAV_HIDDEN_SCREENS = new Set(['login', 'name', 'group', 'spicy-gate']);
   const navWrap = document.getElementById('nav-wrap');
+  const navBar = document.getElementById('nav-bar');
   const navIndicator = document.getElementById('nav-indicator');
   const navButtons = Array.from(document.querySelectorAll('.nav-btn'));
 
+  // A posição é medida ao vivo a partir do ícone de destino (em vez de
+  // valores fixos em px), para funcionar em qualquer largura de ecrã —
+  // cada iPhone tem uma largura de ecrã (em "pontos CSS") diferente.
   function updateNavIndicator(name) {
     navWrap.classList.toggle('hidden', NAV_HIDDEN_SCREENS.has(name));
     navButtons.forEach((btn) => btn.classList.toggle('active', btn.dataset.nav === name));
-    const left = NAV_INDICATOR_LEFT[name];
-    navIndicator.style.opacity = left === undefined ? '0' : '1';
-    navIndicator.style.left = (left === undefined ? 26.25 : left) + 'px';
+    const target = navButtons.find((btn) => btn.dataset.nav === name);
+    if (!target) {
+      navIndicator.style.opacity = '0';
+      return;
+    }
+    navIndicator.style.opacity = '1';
+    const barRect = navBar.getBoundingClientRect();
+    const btnRect = target.getBoundingClientRect();
+    const left = btnRect.left - barRect.left + (btnRect.width - navIndicator.offsetWidth) / 2;
+    navIndicator.style.left = left + 'px';
   }
 
   function showScreen(name) {
