@@ -577,15 +577,22 @@
   // tua nota); as já avaliadas ficam no arquivo ("Ver cards anteriores").
   let historyShowArchive = false;
 
-  function renderHistoryItem(entry) {
+  // Reunido aqui porque tanto o cartão na lista como a folha de detalhe
+  // (ao tocar no cartão) mostram a mesma informação.
+  function historyBadgeInfo(entry) {
     const myBadge = entry.myRating ? `A tua nota: ${entry.myRating}★` : (entry.done ? 'Feito' : 'Pendente');
     const partnerName = getPartnerName() || 'o/a teu/tua par';
     const partnerLine = !entry.myRating
       ? ''
       : entry.partnerRating !== null
-        ? ` · Nota de ${partnerName}: ${entry.partnerRating}★`
-        : ` · A aguardar a nota de ${partnerName}`;
+        ? `Nota de ${partnerName}: ${entry.partnerRating}★`
+        : `A aguardar a nota de ${partnerName}`;
     const matched = entry.myRating && entry.partnerRating && entry.myRating === entry.partnerRating;
+    return { myBadge, partnerLine, matched };
+  }
+
+  function renderHistoryItem(entry) {
+    const { myBadge, partnerLine, matched } = historyBadgeInfo(entry);
 
     const item = document.createElement('div');
     item.className = 'list-item';
@@ -595,10 +602,26 @@
         <span class="list-item-badge">${myBadge}</span>
       </div>
       ${matched ? '<span class="list-item-badge unlocked voucher-badge">🎁 Vale desbloqueado!</span>' : ''}
-      <p class="list-item-meta">Escolhido por ${entry.by} · ${formatDate(entry.date)}${partnerLine}</p>
+      <p class="list-item-meta">Escolhido por ${entry.by} · ${formatDate(entry.date)}${partnerLine ? ' · ' + partnerLine : ''}</p>
       ${entry.myRating ? '' : `<div class="list-item-actions"><button data-id="${entry.id}" class="btn-mark-done">Marcar como feito</button></div>`}
     `;
+    item.addEventListener('click', () => openHistoryDetailSheet(entry));
     return item;
+  }
+
+  function openHistoryDetailSheet(entry) {
+    const { myBadge, partnerLine, matched } = historyBadgeInfo(entry);
+    document.getElementById('history-detail-text').textContent = entry.text;
+    document.getElementById('history-detail-meta').textContent = `Escolhido por ${entry.by} · ${formatDate(entry.date)}`;
+
+    const badges = document.getElementById('history-detail-badges');
+    badges.innerHTML = `<span class="list-item-badge">${myBadge}</span>`;
+    if (partnerLine) badges.innerHTML += `<span class="list-item-badge">${partnerLine}</span>`;
+    if (matched) badges.innerHTML += `<span class="list-item-badge unlocked">🎁 Vale desbloqueado!</span>`;
+
+    document.getElementById('btn-history-detail-mark-done').classList.toggle('hidden', !!entry.myRating);
+    document.getElementById('btn-history-detail-mark-done').dataset.id = entry.id;
+    openSheet('sheet-history-detail');
   }
 
   async function renderHistory() {
@@ -620,9 +643,17 @@
     }
 
     list.querySelectorAll('.btn-mark-done').forEach((btn) => {
-      btn.addEventListener('click', () => openRatingSheet(btn.dataset.id));
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation(); // não abrir também a folha de detalhe do cartão
+        openRatingSheet(btn.dataset.id);
+      });
     });
   }
+
+  document.getElementById('btn-history-detail-mark-done').addEventListener('click', (e) => {
+    openRatingSheet(e.currentTarget.dataset.id);
+  });
+  document.getElementById('btn-history-detail-close').addEventListener('click', closeSheets);
 
   document.getElementById('btn-historico-archive-toggle').addEventListener('click', () => {
     historyShowArchive = !historyShowArchive;
