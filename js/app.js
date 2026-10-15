@@ -29,12 +29,18 @@
   const screens = Array.from(document.querySelectorAll('.screen'));
   let navStack = ['home'];
 
-  // Posição (em px) do indicador deslizante da navbar, por separador.
+  // A barra de navegação é um único elemento partilhado por todos os ecrãs
+  // (fora de qualquer .screen) — só assim o indicador consegue deslizar de
+  // um separador para o outro em vez de simplesmente "saltar" para a
+  // posição nova a cada troca de ecrã.
   const NAV_INDICATOR_LEFT = { home: 26.25, vales: 108.75, historico: 191.25, definicoes: 273.75 };
+  const NAV_HIDDEN_SCREENS = new Set(['login', 'name', 'group', 'spicy-gate']);
+  const navWrap = document.getElementById('nav-wrap');
   const navIndicator = document.getElementById('nav-indicator');
   const navButtons = Array.from(document.querySelectorAll('.nav-btn'));
 
   function updateNavIndicator(name) {
+    navWrap.classList.toggle('hidden', NAV_HIDDEN_SCREENS.has(name));
     navButtons.forEach((btn) => btn.classList.toggle('active', btn.dataset.nav === name));
     const left = NAV_INDICATOR_LEFT[name];
     navIndicator.style.opacity = left === undefined ? '0' : '1';
