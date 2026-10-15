@@ -29,8 +29,21 @@
   const screens = Array.from(document.querySelectorAll('.screen'));
   let navStack = ['home'];
 
+  // Posição (em px) do indicador deslizante da navbar, por separador.
+  const NAV_INDICATOR_LEFT = { home: 26.25, vales: 108.75, historico: 191.25, definicoes: 273.75 };
+  const navIndicator = document.getElementById('nav-indicator');
+  const navButtons = Array.from(document.querySelectorAll('.nav-btn'));
+
+  function updateNavIndicator(name) {
+    navButtons.forEach((btn) => btn.classList.toggle('active', btn.dataset.nav === name));
+    const left = NAV_INDICATOR_LEFT[name];
+    navIndicator.style.opacity = left === undefined ? '0' : '1';
+    navIndicator.style.left = (left === undefined ? 26.25 : left) + 'px';
+  }
+
   function showScreen(name) {
     screens.forEach((s) => s.classList.toggle('active', s.dataset.screen === name));
+    updateNavIndicator(name);
   }
   function goTo(name) {
     navStack.push(name);
@@ -216,23 +229,95 @@
   // ================== Ecrã principal: grelha de categorias ==================
   const grid = document.getElementById('category-grid');
 
+  const ARROW_SVG = '<svg class="icon-svg" viewBox="0 0 2434 1800"><path d="M1928.327,839.656l-78.018,-78.018c-23.55,-23.55 -23.55,-61.789 0,-85.339c23.55,-23.55 61.789,-23.55 85.339,0l223.701,223.701l-223.701,223.701c-23.55,23.55 -61.789,23.55 -85.339,0c-23.55,-23.55 -23.55,-61.789 -0,-85.339l78.018,-78.018l-1593.999,0c-33.305,0 -60.344,-27.039 -60.344,-60.344c-0,-33.305 27.039,-60.344 60.344,-60.344l1593.999,0Z"/></svg>';
+
   function renderGrid() {
     grid.innerHTML = '';
     CATEGORIES.forEach((cat) => {
       const card = document.createElement('button');
       card.className = 'category-card';
-      card.style.setProperty('--card-color-1', cat.cor);
-      card.style.setProperty('--card-color-2', cat.corEscura);
+      card.style.background = cat.cor;
       card.innerHTML = `
-        <span class="card-texts">
+        <div>
           <h3>${cat.nome}</h3>
           <p>${cat.frase}</p>
-        </span>
-        ${cat.protegida ? '<span class="lock-badge">🔒</span>' : ''}
+        </div>
+        ${ARROW_SVG}
       `;
       card.addEventListener('click', () => openCategory(cat.id));
       grid.appendChild(card);
     });
+  }
+
+  // ---- Arrastar o carrossel com o rato (o dedo já funciona nativamente) ----
+  let carouselDrag = null;
+  let carouselWasDragged = false;
+  grid.addEventListener('mousedown', (e) => {
+    carouselDrag = { x: e.clientX, left: grid.scrollLeft };
+    carouselWasDragged = false;
+  });
+  grid.addEventListener('mousemove', (e) => {
+    if (!carouselDrag) return;
+    const dx = e.clientX - carouselDrag.x;
+    if (Math.abs(dx) > 4) carouselWasDragged = true;
+    grid.scrollLeft = carouselDrag.left - dx;
+  });
+  ['mouseup', 'mouseleave'].forEach((ev) => grid.addEventListener(ev, () => { carouselDrag = null; }));
+  grid.addEventListener(
+    'click',
+    (e) => {
+      if (carouselWasDragged) {
+        e.stopPropagation();
+        e.preventDefault();
+        carouselWasDragged = false;
+      }
+    },
+    true
+  );
+
+  // ---- Cartões de estatística na home: próximo vale a expirar + ideia mais antiga por cumprir ----
+  const statCardsEl = document.getElementById('stat-cards');
+
+  async function renderHomeStats() {
+    await Promise.all([loadHistory(), loadWallet()]);
+
+    // historyCache vem ordenado do mais recente para o mais antigo.
+    const pending = historyCache.filter((e) => !e.myRating);
+    const oldestPending = pending.length ? pending[pending.length - 1] : null;
+
+    const now = Date.now();
+    const myActiveVouchers = walletCache.filter(
+      (v) => v.assigned_to === authCtx.user.id && v.status === 'ativo' && v.has_time_limit && v.expires_at && new Date(v.expires_at).getTime() > now
+    );
+    myActiveVouchers.sort((a, b) => new Date(a.expires_at) - new Date(b.expires_at));
+    const nextVoucher = myActiveVouchers[0] || null;
+
+    statCardsEl.innerHTML = '';
+
+    const voucherCard = document.createElement('button');
+    voucherCard.className = 'stat-card dark' + (nextVoucher ? '' : ' empty');
+    voucherCard.innerHTML = nextVoucher
+      ? `<h3>Próximo vale<br>a expirar&hellip;</h3><p>${nextVoucher.text}</p>`
+      : `<p>Não tens nenhum vale</p>`;
+    voucherCard.addEventListener('click', async () => {
+      valesTab = 'mine';
+      valesShowArchive = false;
+      await renderWallet();
+      goTo('vales');
+    });
+    statCardsEl.appendChild(voucherCard);
+
+    const ideaCard = document.createElement('button');
+    ideaCard.className = 'stat-card outline' + (oldestPending ? '' : ' empty');
+    ideaCard.innerHTML = oldestPending
+      ? `<h3>Há mais tempo<br>à espera&hellip;</h3><p>${oldestPending.text}</p>`
+      : `<p>Não tens nada pendente. Está na hora de novo sorteio</p>`;
+    ideaCard.addEventListener('click', async () => {
+      historyShowArchive = false;
+      await renderHistory();
+      goTo('historico');
+    });
+    statCardsEl.appendChild(ideaCard);
   }
 
   // ================== Folhas de confirmação (overlay) genéricas ==================
@@ -930,10 +1015,44 @@
   });
 
   // ---- Acrescentar ideias às categorias (partilhado pelo grupo) ----
+  const ADD_CATEGORY_COLORS = { vales: '#1A1A1A' };
+  CATEGORIES.forEach((c) => { ADD_CATEGORY_COLORS[c.id] = c.cor; });
+  function addCategoryTextColor(id) {
+    return id === 'vales' ? '#FBF8EF' : '#1A1A1A';
+  }
+
+  const pickCategoryBtn = document.getElementById('btn-pick-category');
+  const pickCategoryLabel = document.getElementById('category-picker-label');
+
+  function setAddCategory(id) {
+    selectAddCategory.value = id;
+    const cat = ADDABLE_CATEGORIES.find((c) => c.id === id) || ADDABLE_CATEGORIES[0];
+    pickCategoryLabel.textContent = cat.nome.toLowerCase();
+    pickCategoryBtn.style.background = ADD_CATEGORY_COLORS[cat.id] || '#A6CBFF';
+    pickCategoryBtn.style.color = addCategoryTextColor(cat.id);
+  }
+
+  function populateCategoryPicker() {
+    const container = document.getElementById('category-picker-options');
+    container.innerHTML = ADDABLE_CATEGORIES.map(
+      (c) => `<button type="button" class="category-picker-option" data-id="${c.id}" style="background:${ADD_CATEGORY_COLORS[c.id] || '#A6CBFF'}; color:${addCategoryTextColor(c.id)};">${c.nome.toLowerCase()}</button>`
+    ).join('');
+    container.querySelectorAll('.category-picker-option').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        setAddCategory(btn.dataset.id);
+        closeSheets();
+      });
+    });
+  }
+
+  pickCategoryBtn.addEventListener('click', () => openSheet('sheet-pick-category'));
+
   function populateCategorySelect() {
     selectAddCategory.innerHTML = ADDABLE_CATEGORIES.map(
       (c) => `<option value="${c.id}">${c.nome}</option>`
     ).join('');
+    populateCategoryPicker();
+    setAddCategory(ADDABLE_CATEGORIES[0].id);
   }
 
   document.getElementById('btn-add-idea').addEventListener('click', async () => {
@@ -948,9 +1067,14 @@
     toast('Ideia adicionada ao sorteio — vai surpreender quando calhar ✓');
   });
 
-  document.getElementById('btn-settings').addEventListener('click', async () => {
+  document.getElementById('nav-definicoes').addEventListener('click', async () => {
     await loadSettings();
     goTo('settings');
+  });
+
+  document.getElementById('nav-home').addEventListener('click', async () => {
+    await renderHomeStats();
+    goHome();
   });
 
   // ================== Tempo real: atualiza quando o/a par faz algo ==================
@@ -1001,6 +1125,7 @@
     renderCoupleHeader();
     renderGrid();
     await loadFavorites();
+    await renderHomeStats();
     subscribeRealtime();
     showScreen('home');
 

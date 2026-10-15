@@ -5,8 +5,8 @@ const CATEGORIES = [
     id: 'dates',
     nome: 'Dates',
     frase: 'Ideias para o próximo encontro',
-    cor: '#FFA489',
-    corEscura: '#FF7A5C',
+    cor: '#A6CBFF',
+    corEscura: '#A6CBFF',
     items: [
       'Jantar num restaurante italiano e partilhar uma sobremesa',
       'Piquenique num jardim com comida que nenhum dos dois provou antes',
@@ -94,8 +94,8 @@ const CATEGORIES = [
     id: 'perguntas',
     nome: 'Perguntas',
     frase: 'Para se conhecerem ainda melhor',
-    cor: '#FF7A5C',
-    corEscura: '#F2503A',
+    cor: '#FCBC58',
+    corEscura: '#FCBC58',
     items: [
       'Qual foi o momento em que percebeste que gostavas de mim?',
       'O que é que te fez sorrir esta semana?',
@@ -183,8 +183,8 @@ const CATEGORIES = [
     id: 'desafios',
     nome: 'Desafios',
     frase: 'Para fazerem juntos',
-    cor: '#E8402C',
-    corEscura: '#C21F2A',
+    cor: '#D190F0',
+    corEscura: '#D190F0',
     items: [
       'Cozinhar um prato só com 5 ingredientes',
       'Ficar 24 horas sem telemóveis um com o outro',
@@ -272,8 +272,8 @@ const CATEGORIES = [
     id: 'spicy',
     nome: 'Spicy',
     frase: 'Só para os dois',
-    cor: '#B71C2B',
-    corEscura: '#7A0E1E',
+    cor: '#FA6E6E',
+    corEscura: '#FA6E6E',
     protegida: true,
     items: [
       'Massagem sensual com óleo, de 15 minutos para cada um',

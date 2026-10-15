@@ -2,7 +2,7 @@
 // Parte 1: cache do "app shell" para funcionar offline.
 // Parte 2: vai também receber notificações push (Web Push + VAPID).
 
-const CACHE_NAME = 'nos-dois-v16';
+const CACHE_NAME = 'nos-dois-v17';
 const APP_SHELL = [
   './',
   './index.html',
@@ -12,8 +12,10 @@ const APP_SHELL = [
   './js/data.js',
   './js/auth.js',
   './js/app.js',
-  './fonts/AcidTM.otf',
-  './fonts/AcidTM.ttf',
+  './fonts/Quanta Grotesk Pro/QuantaGroteskPro-Medium.otf',
+  './fonts/Quanta Grotesk Pro/QuantaGroteskPro-SemiBold.otf',
+  './fonts/Quanta Grotesk Pro/QuantaGroteskPro-Bold.otf',
+  './fonts/Quanta Grotesk Pro/QuantaGroteskPro-Black.otf',
   './icons/icon-192.png',
   './icons/icon-512.png',
   './icons/icon-180.png',
