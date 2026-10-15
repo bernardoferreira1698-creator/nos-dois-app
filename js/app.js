@@ -301,12 +301,15 @@
     const pending = historyCache.filter((e) => !e.myRating);
     const oldestPending = pending.length ? pending[pending.length - 1] : null;
 
+    // Nem todos os vales têm prazo (só os que o texto refere, ex: "durante 1
+    // semana") — se não houver nenhum com prazo, mostra na mesma algum vale
+    // ativo, em vez de dizer que não há nenhum quando na verdade há.
     const now = Date.now();
-    const myActiveVouchers = walletCache.filter(
-      (v) => v.assigned_to === authCtx.user.id && v.status === 'ativo' && v.has_time_limit && v.expires_at && new Date(v.expires_at).getTime() > now
-    );
-    myActiveVouchers.sort((a, b) => new Date(a.expires_at) - new Date(b.expires_at));
-    const nextVoucher = myActiveVouchers[0] || null;
+    const myActiveVouchers = walletCache.filter((v) => v.assigned_to === authCtx.user.id && v.status === 'ativo');
+    const myVouchersWithDeadline = myActiveVouchers
+      .filter((v) => v.has_time_limit && v.expires_at && new Date(v.expires_at).getTime() > now)
+      .sort((a, b) => new Date(a.expires_at) - new Date(b.expires_at));
+    const nextVoucher = myVouchersWithDeadline[0] || myActiveVouchers[0] || null;
 
     statCardsEl.innerHTML = '';
 
@@ -1096,6 +1099,7 @@
       .channel('group-' + gid)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'history', filter: `group_id=eq.${gid}` }, () => {
         if (activeScreenName() === 'historico') renderHistory();
+        if (activeScreenName() === 'home') renderHomeStats();
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'history_ratings' }, (payload) => {
         const historyId = (payload.new && payload.new.history_id) || (payload.old && payload.old.history_id);
@@ -1107,6 +1111,7 @@
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'vouchers', filter: `group_id=eq.${gid}` }, () => {
         if (activeScreenName() === 'vales') renderWallet();
+        if (activeScreenName() === 'home') renderHomeStats();
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'custom_items', filter: `group_id=eq.${gid}` }, () => {
         customItemsCache = {}; // força a recarregar na próxima vez que entrarem numa categoria
