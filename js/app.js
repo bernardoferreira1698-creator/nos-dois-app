@@ -311,10 +311,8 @@
     statCardsEl.innerHTML = '';
 
     const voucherCard = document.createElement('button');
-    voucherCard.className = 'stat-card dark' + (nextVoucher ? '' : ' empty');
-    voucherCard.innerHTML = nextVoucher
-      ? `<h3>Próximo vale<br>a expirar&hellip;</h3><p>${nextVoucher.text}</p>`
-      : `<p>Não tens nenhum vale</p>`;
+    voucherCard.className = 'stat-card dark';
+    voucherCard.innerHTML = `<h3>Próximo vale<br>a expirar&hellip;</h3><p>${nextVoucher ? nextVoucher.text : 'Não tens nenhum vale'}</p>`;
     voucherCard.addEventListener('click', async () => {
       valesTab = 'mine';
       valesShowArchive = false;
@@ -324,10 +322,8 @@
     statCardsEl.appendChild(voucherCard);
 
     const ideaCard = document.createElement('button');
-    ideaCard.className = 'stat-card outline' + (oldestPending ? '' : ' empty');
-    ideaCard.innerHTML = oldestPending
-      ? `<h3>Há mais tempo<br>à espera&hellip;</h3><p>${oldestPending.text}</p>`
-      : `<p>Não tens nada pendente. Está na hora de novo sorteio</p>`;
+    ideaCard.className = 'stat-card outline';
+    ideaCard.innerHTML = `<h3>Há mais tempo<br>à espera&hellip;</h3><p>${oldestPending ? oldestPending.text : 'Não tens nada pendente. Está na hora de novo sorteio'}</p>`;
     ideaCard.addEventListener('click', async () => {
       historyShowArchive = false;
       await renderHistory();
